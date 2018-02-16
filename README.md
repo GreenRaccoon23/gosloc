@@ -26,8 +26,7 @@ gosloc <options> <path>...
   -c, --concurrency int   Max number of files to read simultaneously (default 1)
   -t, --total             Show a grand total, not the total for each file
 
-WARNING: Setting concurrency too high will cause the program to crash,
-corrupting the files it was editing.
+WARNING: Setting concurrency too high will cause the program to crash.
 ```
 
 Written in [Go](https://golang.org/).
