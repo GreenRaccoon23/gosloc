@@ -9,7 +9,7 @@ go get github.com/GreenRaccoon23/gosloc;
 # Download
 
 ```bash
-git clone https://github.com/GreenRaccoon23/gosloc.git
+git clone https://github.com/GreenRaccoon23/gosloc.git;
 ```
 
 # Description
@@ -19,7 +19,7 @@ Command-line program to count source lines of code quickly.
 Mostly works, but still in development.
 
 ```bash
-[hiro@nakamura ~]$ gosloc -h
+[hiro@nakamura ~]$ gosloc -h;
 gosloc <options> <path>...
   -i, --include string    File patterns to include, separated by commas
   -x, --exclude string    File patterns to exclude, separated by commas
