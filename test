@@ -120,8 +120,8 @@ _chkMatches() {
     fi;
 };
 
-# _delete;
-# _create;
+_delete;
+_create;
 # _gotest;
 _cmdtest;
-# _delete;
+_delete;
