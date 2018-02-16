@@ -1,6 +1,7 @@
 package futil
 
 import (
+	"bufio"
 	"io"
 	"net/http"
 	"os"
@@ -103,6 +104,42 @@ func (sh *sliceHash) has(str string) bool {
 	_, has := (*sh)[str]
 
 	return has
+}
+
+// IsPipe returns whether a file is a pipe
+func IsPipe(f *os.File) bool {
+
+	fi, err := f.Stat()
+	if err != nil {
+		return false
+	}
+
+	mode := fi.Mode()
+
+	if mode&os.ModeNamedPipe != 0 {
+		return true
+	}
+
+	return false
+}
+
+// ReadLines reads a file and returns its lines as a slice
+func ReadLines(f *os.File) ([]string, error) {
+
+	lines := []string{}
+
+	scanner := bufio.NewScanner(f)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		lines = append(lines, line)
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return lines, nil
 }
 
 // AnyHardlinks checks whether any of the fpaths points to a hardlink

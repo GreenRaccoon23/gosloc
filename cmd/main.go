@@ -5,7 +5,13 @@ import (
 	"os"
 	"strings"
 
+	"github.com/GreenRaccoon23/gosloc/futil"
+	"github.com/GreenRaccoon23/gosloc/logger"
 	"github.com/spf13/pflag"
+)
+
+const (
+	newLine = '\n'
 )
 
 var (
@@ -30,6 +36,7 @@ var (
 func Parse() {
 
 	parse()
+	parseStdin()
 	// debug()
 	// os.Exit(0)
 	validate()
@@ -49,12 +56,29 @@ func parse() {
 	Rpaths = pflag.Args()
 }
 
+func parseStdin() {
+
+	stdin := os.Stdin
+
+	if !futil.IsPipe(stdin) {
+		return
+	}
+
+	rpaths, err := futil.ReadLines(stdin)
+	if err != nil {
+		logger.Err(err)
+	}
+
+	Rpaths = append(Rpaths, rpaths...)
+}
+
 // func debug() {
 //
 // 	fmt.Printf("inclusionsBunch: %v\n", inclusionsBunch)
 // 	fmt.Printf("exclusionsBunch: %v\n", exclusionsBunch)
 // 	fmt.Printf("Concurrency: %v\n", Concurrency)
 // 	fmt.Printf("Total: %v\n", Total)
+// 	fmt.Printf("Rpaths: %v\n", Rpaths)
 // }
 
 // usage overrides pflag.Usage
