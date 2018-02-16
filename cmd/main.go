@@ -15,15 +15,15 @@ const (
 )
 
 var (
-	// inclusionsBunch description under parse
+	// inclusionsBunch description under parsArgs
 	inclusionsBunch string
-	// exclusionsBunch description under parse
+	// exclusionsBunch description under parsArgs
 	exclusionsBunch string
-	// Concurrency description under parse
+	// Concurrency description under parsArgs
 	Concurrency int
-	// Total description under parse
+	// Total description under parsArgs
 	Total bool
-	// Rpaths description under parse
+	// Rpaths description under parsArgs
 	Rpaths []string
 
 	// Inclusions is inclusionsBunch split by ','
@@ -35,7 +35,7 @@ var (
 // Parse parses command line arguments
 func Parse() {
 
-	parse()
+	parsArgs()
 	parseStdin()
 	// debug()
 	// os.Exit(0)
@@ -44,7 +44,7 @@ func Parse() {
 	setExclusions()
 }
 
-func parse() {
+func parsArgs() {
 
 	pflag.StringVarP(&inclusionsBunch, "include", "i", "", "File patterns to include, separated by commas")
 	pflag.StringVarP(&exclusionsBunch, "exclude", "x", "", "File patterns to exclude, separated by commas")
