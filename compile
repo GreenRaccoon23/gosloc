@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+
+declare -r Pkgname="${PWD##*/}";
+declare -r DstGdad='bin';
+declare -r Arch32='386';
+declare -r Arch64='amd64';
+# declare -r Arch32Arm='arm';
+# declare -r Arch64Arm='arm64';
+
+
+_main() {
+    mkdir -p "${DstGdad}";
+    _buildLinux;
+    _buildMac;
+    _buildWindows;
+    _buildAndroid;
+};
+
+_buildLinux() {
+    _build 'linux' "${Arch32}";
+    _build 'linux' "${Arch64}";
+};
+
+_buildMac() {
+    _build 'darwin' "${Arch32}";
+    _build 'darwin' "${Arch64}";
+};
+
+_buildWindows() {
+    _build 'windows' "${Arch32}";
+    _build 'windows' "${Arch64}";
+};
+
+# Run `go build` and move the compiled binary to its destination folder.
+_build() {
+
+    local -r os="${1}";
+    local -r arch="${2}";
+    local dstName="${Pkgname}";
+    local bits='32';
+    local dstDad;
+    local dstPath;
+
+    [ "${arch: -2}" = '64' ] && bits='64';
+    [ "${os}" = 'windows' ] && dstName="${Pkgname}.exe";
+    dstDad="${DstGdad}/${os}_${bits}";
+    dstPath="${dstDad}/${dstName}";
+
+    mkdir -p "${dstDad}" || _err $? "Failed to create '${dstDad}'"
+
+    if [ -e "${dstName}" ]; then
+        rm "${dstName}" || _err $? "Failed to remove '${dstName}'";
+    fi;
+
+    if [ -e "${dstPath}" ]; then
+        rm "${dstPath}" || _err $? "Failed to remove '${dstPath}'";
+    fi;
+
+    GOOS="${os}" GOARCH="${arch}" go build || _err $? "Build failed for '${os}' on '${arch}' architecture";
+    echo "Build successful for '${os}' on '${arch}' architecture";
+
+    mv "${dstName}" "${dstPath}" || _err $? "Failed to move '${dstName}' to '${dstPath}'";
+
+    return 0;
+};
+
+_buildAndroid() {
+
+    # _build 'android' "${Arch32Arm}";
+    # _build 'android' "${Arch64Arm}";
+
+    local -r os='android';
+    local -r arch='arm';
+    local -r bits='32';
+    local -r dstDad="${DstGdad}/${os}_${bits}";
+    local -r dstPath="${dstDad}/${dstName}";
+
+    ##############################
+    # THIS ONE ACTUALLY WORKS!!!!!
+    ##############################
+    # Add '-x' for verbose output
+    # GOMOBILE="${GOPATH}/pkg/gomobile" GOOS="android" GOARCH="arm" CC="${GOMOBILE}/android-ndk-r12b/arm/bin/arm-linux-androideabi-clang" CXX="${GOMOBILE}/android-ndk-r12b/arm/bin/arm-linux-androideabi-clang++" CGO_CFLAGS="-target armv7a-none-linux-androideabi --sysroot ${GOMOBILE}/android-ndk-r12b/arm/sysroot" CGO_CPPFLAGS="-target armv7a-none-linux-androideabi --sysroot ${GOMOBILE}/android-ndk-r12b/arm/sysroot" CGO_LDFLAGS="-target armv7a-none-linux-androideabi --sysroot ${GOMOBILE}/android-ndk-r12b/arm/sysroot" CGO_ENABLED=1 GOARM=7 go build -pkgdir="${GOMOBILE}/pkg_android_arm" -tags="" -ldflags="-extldflags=-pie" -buildmode="c-shared" -o "${GOPATH}/src/github.com/GreenRaccoon23/${Pkgname}/Android_32/${Pkgname}" "github.com/GreenRaccoon23/${Pkgname}";
+    GOMOBILE="${GOPATH}/pkg/gomobile" \
+        GOOS="${os}" \
+        GOARCH="${arch}" \
+        CC="${GOMOBILE}/android-ndk-r12b/arm/bin/arm-linux-androideabi-clang" \
+        CXX="${GOMOBILE}/android-ndk-r12b/arm/bin/arm-linux-androideabi-clang++" \
+        CGO_CFLAGS="-target armv7a-none-linux-androideabi --sysroot ${GOMOBILE}/android-ndk-r12b/arm/sysroot" \
+        CGO_CPPFLAGS="-target armv7a-none-linux-androideabi --sysroot ${GOMOBILE}/android-ndk-r12b/arm/sysroot" \
+        CGO_LDFLAGS="-target armv7a-none-linux-androideabi --sysroot ${GOMOBILE}/android-ndk-r12b/arm/sysroot" \
+        CGO_ENABLED=1 \
+        GOARM=7 \
+        go build \
+            -pkgdir="${GOMOBILE}/pkg_android_arm" \
+            -tags="" \
+            -ldflags="-extldflags=-pie" \
+            -buildmode="c-shared" || _err $? "Build failed for '${os}' on '${arch}' architecture";
+
+    echo "Build successful for '${os}' on '${arch}' architecture";
+};
+
+_err() {
+    local -r scode=${1};
+    local -r msg="${2}";
+    echo "${msg}";
+    exit ${scode};
+};
+
+# Capitalize the first letter of a string.
+_capitalize() {
+    # For Bash 4+:
+    echo "${1^}";
+    # For zsh:
+    # echo "${(C)1}";
+};
+
+_main;

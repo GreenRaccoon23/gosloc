@@ -1,0 +1,92 @@
+package cmd
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/spf13/pflag"
+)
+
+var (
+	// DstDir description under parse
+	DstDir string
+	// Quiet description under parse
+	Quiet bool
+	// Fpaths description under parse
+	Fpaths []string
+)
+
+// Parse parses command line arguments
+func Parse() {
+
+	parse()
+	// debug()
+	// os.Exit(0)
+	validate()
+	setQuiet()
+	setDstdir()
+}
+
+func parse() {
+
+	pflag.StringVarP(&DstDir, "dst", "d", "", "Directory under which to place files")
+	pflag.BoolVarP(&Quiet, "quiet", "q", false, "Hide all output except errors")
+	pflag.Usage = usage
+	pflag.CommandLine.SortFlags = false
+	pflag.Parse()
+	Fpaths = pflag.Args()
+}
+
+// func debug() {
+//
+// 	fmt.Printf("DstDir: %v\n", DstDir)
+// 	fmt.Printf("Quiet: %v\n", Quiet)
+// 	fmt.Printf("Fpaths: %v\n", Fpaths)
+// }
+
+// usage overrides pflag.Usage
+func usage() {
+	fmt.Fprintf(os.Stderr, `%v <options> <path>...
+
+	Compress/uncompress files to/from snappy archives.
+
+`, os.Args[0])
+	pflag.PrintDefaults()
+	fmt.Fprintf(os.Stderr,
+		`
+This program automatically determines whether a file should be
+compressed or decompressed.
+Directories are compressed into tar archives.
+`,
+	)
+}
+
+func validate() {
+
+	if len(Fpaths) == 0 {
+		complain("No paths specified")
+	}
+}
+
+func setQuiet() {
+
+	if len(Fpaths) > 1 {
+		Quiet = true
+	}
+}
+
+func setDstdir() {
+
+	if DstDir != "" {
+		DstDir = filepath.Clean(DstDir)
+	}
+}
+
+func complain(complaint string) {
+
+	fmt.Fprintf(os.Stderr, "%v\n\n", complaint)
+	usage()
+	fmt.Fprintf(os.Stderr, "\n%v\n", complaint)
+	os.Exit(2)
+}

@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+
+_delete() {
+    [ -d '.test_tmp' ] && rm -r '.test_tmp';
+    return 0;
+};
+
+_create() {
+
+    mkdir -p '.test_tmp/tmp';
+    touch '.test_tmp/tmp/massive_file';
+    touch '.test_tmp/audio-x-mpeg.svg';
+    touch '.test_tmp/battery-050-charging.svg';
+    touch '.test_tmp/tmp/terminal.svg';
+    ln -sr '.test_tmp/tmp/terminal.svg' '.test_tmp/tmp/terminal-link.svg';
+
+    _fillMassiveFile;
+
+    cat <<EOM > '.test_tmp/audio-x-mpeg.svg'
+<svg fill="#4caf50" height="48" viewBox="0 0 48 48" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M28.93 27L22 40V29h-4l1.07-2H14v14.33C14 42.8 15.19 44 16.67 44h14.67c1.47 0 2.67-1.19 2.67-2.67V27h-5.08z" fill="#4caf50"/><path d="M31.33 8H28V4h-8v4h-3.33C15.19 8 14 9.19 14 10.67V27h5.07L26 14v11h4l-1.07 2H34V10.67C34 9.19 32.81 8 31.33 8z" fill-opacity=".3" fill="#4caf50"/></svg>
+EOM
+    cat <<EOM > '.test_tmp/battery-050-charging.svg'
+<svg fill="#4caf50" height="48" viewBox="0 0 48 48" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M28.93 27L22 40V29h-4l1.07-2H14v14.33C14 42.8 15.19 44 16.67 44h14.67c1.47 0 2.67-1.19 2.67-2.67V27h-5.08z" fill="#4caf50"/><path d="M31.33 8H28V4h-8v4h-3.33C15.19 8 14 9.19 14 10.67V27h5.07L26 14v11h4l-1.07 2H34V10.67C34 9.19 32.81 8 31.33 8z" fill-opacity=".3" fill="#4caf50"/></svg>
+EOM
+    cat <<EOM > '.test_tmp/tmp/terminal.svg'
+<svg fill="#4caf50" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+	<rect fill="#4caf50" height="36" rx="4" width="40" x="4" y="6"/>
+	<path d="m8 10h32v28h-32z" fill="#000"/>
+	<text style="font-family:Inconsolata;font-size:20;font-weight:bold;letter-spacing:0;word-spacing:0;fill:#4caf50" x="11.26" y="25.64">
+		<tspan fill="#4caf50" x="11.26" y="25.64">&gt;_</tspan>
+	</text>
+</svg>
+EOM
+};
+
+_fillMassiveFile() {
+
+    touch '.test_tmp/tmp/massive_file_tmp1';
+    touch '.test_tmp/tmp/massive_file_tmp2';
+    touch '.test_tmp/tmp/massive_file_tmp3';
+    touch '.test_tmp/tmp/massive_file_tmp4';
+
+    _copend '.test_file' '.test_tmp/tmp/massive_file_tmp1' 10;
+    _copend '.test_tmp/tmp/massive_file_tmp1' '.test_tmp/tmp/massive_file_tmp2' 10;
+    _copend '.test_tmp/tmp/massive_file_tmp2' '.test_tmp/tmp/massive_file_tmp3' 10;
+    _copend '.test_tmp/tmp/massive_file_tmp3' '.test_tmp/tmp/massive_file_tmp4' 10;
+    _copend '.test_tmp/tmp/massive_file_tmp4' '.test_tmp/tmp/massive_file' 70;
+
+    rm ".test_tmp/tmp/massive_file_tmp1";
+    rm ".test_tmp/tmp/massive_file_tmp2";
+    rm ".test_tmp/tmp/massive_file_tmp3";
+    rm ".test_tmp/tmp/massive_file_tmp4";
+};
+
+_copend() {
+
+    local -r src="${1}";
+    local -r dst="${2}";
+    local -ir cnt=${3};
+    local -i i;
+
+    for ((i=0;i<cnt;i++)); do
+        cat "${src}" >> "${dst}";
+    done;
+};
+
+# _gotest() {
+#     go test './main_test.go';
+# };
+
+_cmdtest() {
+
+    local got;
+    local expected;
+
+    echo "go run 'main.go' -c 10 '.test_img.png'";
+    got="$(go run 'main.go' -c 10 '.test_img.png')" || return $?;
+    expected='';
+    _chkMatches "${got}" "${expected}" || return $?;
+
+    echo "go run 'main.go' -c 10 '.test_tmp/tmp/massive_file'";
+    got="$(go run 'main.go' -c 10 '.test_tmp/tmp/massive_file')" || return $?;
+    expected='64400000 .test_tmp/tmp/massive_file';
+    _chkMatches "${got}" "${expected}" || return $?;
+
+    echo "go run 'main.go' -tc 10 '.test_tmp'";
+    got="$(go run 'main.go' -tc 10 '.test_tmp')" || return $?;
+    expected='4 files
+64400009 lines';
+    _chkMatches "${got}" "${expected}" || return $?;
+
+    echo "go run 'main.go' -c 10 '.test_tmp'";
+    got="$(go run 'main.go' -c 10 '.test_tmp')" || return $?;
+    expected='1 .test_tmp/audio-x-mpeg.svg
+1 .test_tmp/battery-050-charging.svg
+64400000 .test_tmp/tmp/massive_file
+7 .test_tmp/tmp/terminal.svg';
+    _chkMatches "${got}" "${expected}" || return $?;
+
+    echo "go run 'main.go' -c 10 .test_*";
+    got="$(go run 'main.go' -c 10 .test_*)" || return $?;
+    expected='92 .test_file
+1 .test_tmp/audio-x-mpeg.svg
+1 .test_tmp/battery-050-charging.svg
+64400000 .test_tmp/tmp/massive_file
+7 .test_tmp/tmp/terminal.svg';
+    _chkMatches "${got}" "${expected}" || return $?;
+};
+
+_chkMatches() {
+
+    local -r got="${1}";
+    local -r expected="${2}";
+
+    if [ "${got}" != "${expected}" ]; then
+        echo "Expected '${expected}' but got '${got}'";
+        return 1;
+    else
+        return 0;
+    fi;
+};
+
+# _delete;
+# _create;
+# _gotest;
+_cmdtest;
+# _delete;
