@@ -3,7 +3,7 @@
 # Install
 
 ```bash
-go get github.com/GreenRaccoon23/gosloc;
+go get -u github.com/GreenRaccoon23/gosloc;
 
 ```
 # Download
