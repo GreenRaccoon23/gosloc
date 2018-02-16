@@ -63,8 +63,7 @@ func usage() {
 	pflag.PrintDefaults()
 	fmt.Fprintf(os.Stderr,
 		`
-WARNING: Setting concurrency too high will cause the program to crash,
-corrupting the files it was editing.
+WARNING: Setting concurrency too high will cause the program to crash.
 `,
 	)
 }
