@@ -80,22 +80,36 @@ func (g *globber) globRecursive(rpath string) ([]string, error) {
 
 	matches := []string{}
 
+	dpaths, err := dirsUnder(rpath)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, dpath := range dpaths {
+		more, err := g.globThere(dpath)
+		if err != nil {
+			return nil, err
+		}
+
+		matches = append(matches, more...)
+	}
+
+	return matches, nil
+}
+
+func dirsUnder(rpath string) ([]string, error) {
+
+	dpaths := []string{}
+
 	err := filepath.Walk(rpath, func(fpath string, fi os.FileInfo, err error) error {
 
 		if err != nil {
 			return err
 		}
 
-		if !fi.IsDir() {
-			return nil
+		if fi.IsDir() {
+			dpaths = append(dpaths, fpath)
 		}
-
-		more, err := g.globThere(fpath)
-		if err != nil {
-			return err
-		}
-
-		matches = append(matches, more...)
 
 		return nil
 	})
@@ -103,7 +117,7 @@ func (g *globber) globRecursive(rpath string) ([]string, error) {
 		return nil, err
 	}
 
-	return matches, nil
+	return dpaths, nil
 }
 
 func (g *globber) globThere(dpath string) ([]string, error) {
