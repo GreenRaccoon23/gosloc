@@ -30,13 +30,12 @@ func newGlobber(rpaths []string, inclusions []string, exclusions []string, recur
 func Glob(rpaths []string, inclusions []string, exclusions []string, recursive bool) ([]string, error) {
 
 	g := newGlobber(rpaths, inclusions, exclusions, recursive)
-	matches, err := g.Glob()
+	matches, err := g.glob()
 
 	return matches, err
 }
 
-// Glob runs filepath.Glob, and it does this recursively if requested.
-func (g *globber) Glob() ([]string, error) {
+func (g *globber) glob() ([]string, error) {
 
 	rpaths := g.rpaths
 	matches := []string{}
