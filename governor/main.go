@@ -48,9 +48,9 @@ func (g *Governor) Accelerate() {
 // Decelerate tells the Governor that a goroutine has finished.
 func (g *Governor) Decelerate(err error) {
 
+	defer g.wg.Done()
 	g.errs <- err
 	<-g.semaphore
-	g.wg.Done()
 }
 
 // Regulate tells the Governor to start watching goroutines and to stop further
