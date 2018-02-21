@@ -120,8 +120,15 @@ _chkMatches() {
     fi;
 };
 
-_delete;
-_create;
-# _gotest;
-_cmdtest;
-_delete;
+_err() {
+    local -ir scode="${1}";
+    local -r msg="${2}";
+    echo "${msg}";
+    exit ${scode};
+};
+
+_delete || _err $? 'Failed to delete tmp files';
+_create || _err $? 'Failed to create tmp files';
+# _gotest || _err $? 'Failed to run go test files';
+_cmdtest || _err $? 'Failed to run tests';
+_delete || _err $? 'Failed to delete tmp files';
