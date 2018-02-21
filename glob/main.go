@@ -72,6 +72,15 @@ func (g *globber) globDynamic(rpath string) ([]string, error) {
 		return g.globThere(rpath)
 	}
 
+	matched, err := g.match(rpath)
+	if err != nil {
+		return nil, err
+	}
+
+	if !matched {
+		return nil, nil
+	}
+
 	return []string{rpath}, nil
 }
 
@@ -210,4 +219,51 @@ func contains(haystack []string, needle string) bool {
 	}
 
 	return false
+}
+
+func (g *globber) match(fpath string) (bool, error) {
+
+	inclusions := g.inclusions
+	exclusions := g.exclusions
+
+	if len(inclusions) == 0 {
+		inclusions = []string{"*"}
+	}
+
+	included, err := matchAny(inclusions, fpath)
+	if err != nil {
+		return false, err
+	}
+
+	if !included {
+		return false, nil
+	}
+
+	excluded, err := matchAny(exclusions, fpath)
+	if err != nil {
+		return false, err
+	}
+
+	if excluded {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func matchAny(patterns []string, fpath string) (bool, error) {
+
+	for _, pattern := range patterns {
+
+		matched, err := filepath.Match(pattern, fpath)
+		if err != nil {
+			return false, err
+		}
+
+		if matched {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
