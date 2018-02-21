@@ -253,9 +253,11 @@ func (g *globber) match(fpath string) (bool, error) {
 
 func matchAny(patterns []string, fpath string) (bool, error) {
 
+	fname := filepath.Base(fpath)
+
 	for _, pattern := range patterns {
 
-		matched, err := filepath.Match(pattern, fpath)
+		matched, err := match(pattern, fpath, fname)
 		if err != nil {
 			return false, err
 		}
@@ -266,4 +268,14 @@ func matchAny(patterns []string, fpath string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func match(pattern string, fpath string, fname string) (bool, error) {
+
+	dpattern := filepath.Dir(pattern)
+
+	if anyDir := (dpattern == "."); anyDir {
+		return filepath.Match(pattern, fname)
+	}
+	return filepath.Match(pattern, fpath)
 }
